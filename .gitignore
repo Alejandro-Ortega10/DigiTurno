@@ -1,0 +1,25 @@
+# Entornos virtuales de Python
+venv/
+env/
+.env/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Base de datos local (¡Muy importante para no sobreescribir producción!)
+*.db
+turnos.db
+turnos.db-journal
+
+# Archivos de sistema operativo (macOS / Windows / Linux)
+.DS_Store
+Thumbs.db
+
+# Configuración de IDEs (VS Code, PyCharm, etc.)
+.vscode/
+.idea/
+
+# PDFs generados temporalmente (si en algún momento se guardan en disco)
+*.pdf

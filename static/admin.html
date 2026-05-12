@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>Admin - Estadísticas</title></head>
+<body style="font-family: sans-serif; padding: 40px; background: #e9ecef;">
+    <h1>Panel de Administración</h1>
+    <div style="background: white; padding: 20px; border-radius: 8px;">
+        <h3>Estadísticas de Hoy</h3>
+        <p>Total de turnos emitidos: <b id="total">0</b></p>
+        <p>Total de turnos atendidos: <b id="atendidos">0</b></p>
+        <button onclick="cargar()" style="padding: 10px;">Actualizar Datos</button>
+    </div>
+
+    <script>
+        async function cargar() {
+            const res = await fetch('/api/admin/estadisticas');
+            const data = await res.json();
+            document.getElementById("total").innerText = data.total_creados_hoy;
+            document.getElementById("atendidos").innerText = data.atendidos_hoy;
+        }
+        cargar();
+    </script>
+</body>
+</html>

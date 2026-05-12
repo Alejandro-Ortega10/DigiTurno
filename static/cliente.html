@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saca tu Turno</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
+        .btn { display: block; width: 100%; padding: 20px; margin: 15px 0; font-size: 1.5em; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Bienvenido</h1>
+    <p>Selecciona el servicio para generar tu ticket digital:</p>
+    <button class="btn" onclick="window.location.href='/api/cliente/solicitar/caja'">Caja</button>
+    <button class="btn" onclick="window.location.href='/api/cliente/solicitar/asesoria'">Asesoría</button>
+</body>
+</html>

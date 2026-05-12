@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sala de Espera - Digiturno</title>
+    <style>
+        body { 
+            background-color: #050505; 
+            color: #ffffff; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            height: 100vh;
+            overflow: hidden;
+        }
+        .titulo { 
+            font-size: 3vw; 
+            color: #888888; 
+            letter-spacing: 5px;
+            margin-bottom: 2vh; 
+        }
+        .turno { 
+            font-size: 28vw; 
+            font-weight: 900; 
+            color: #00ffea; 
+            text-shadow: 0 0 30px rgba(0, 255, 234, 0.5); 
+            margin: 0; 
+            line-height: 1;
+        }
+        .cajero { 
+            font-size: 5vw; 
+            color: #ffc107; 
+            margin-top: 4vh; 
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="titulo">TURNO ACTUAL</div>
+    <div class="turno" id="turno">--</div>
+    <div class="cajero" id="caja">ESPERANDO LLAMADO...</div>
+
+    <script>
+        // SSE: reemplaza el polling de setInterval cada 3s
+        const source = new EventSource('/api/tv/stream');
+
+        source.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            document.getElementById("turno").innerText =
+                data.turno_numero !== "-" ? data.turno_numero : "--";
+            document.getElementById("caja").innerText =
+                data.cajero !== "-" ? "MÓDULO: " + data.cajero : "ESPERANDO LLAMADO...";
+        };
+
+        source.onerror = () => {
+            console.error("Conexión SSE perdida, reintentando...");
+        };
+    </script>
+</body>
+</html>

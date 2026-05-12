@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Cajero - Digiturno</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f0f2f5; }
+        h2 { color: #333; }
+        input { padding: 8px 12px; font-size: 1em; border: 1px solid #ccc; border-radius: 6px; }
+        #turno_actual { font-size: 60px; color: #333; margin: 20px 0; }
+        .btn-llamar { padding: 20px 40px; font-size: 20px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-finalizar { padding: 10px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Panel de Atención</h2>
+    <p>Cajero: <input type="text" id="nombre_cajero" value="Caja 1">
+    Servicio:
+    <select id="tipo_servicio">
+        <option value="caja">Caja</option>
+        <option value="asesoria">Asesoría</option>
+    </select></p>
+    <button class="btn-llamar" onclick="llamar()">Llamar Siguiente</button>
+    <h1 id="turno_actual">-</h1>
+    <button class="btn-finalizar" onclick="finalizar()">Finalizar Turno Actual</button>
+
+    <script>
+        let turnoActualId = null; // ID interno para /finalizar/
+        async function llamar() {
+            const cajero = document.getElementById("nombre_cajero").value;
+            const servicio = document.getElementById("tipo_servicio").value;
+            const res = await fetch('/api/cajero/llamar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cajero: cajero, servicio: servicio })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                turnoActualId = data.id;                           // ID interno para finalizar
+                document.getElementById("turno_actual").innerText = "Atendiendo: " + data.turno_llamado;
+            } else {
+                alert("No hay turnos en espera");
+            }
+        }
+        async function finalizar() {
+            if (!turnoActualId) return;
+            await fetch('/api/cajero/finalizar/' + turnoActualId, { method: 'POST' });
+            document.getElementById("turno_actual").innerText = "-";
+            turnoActualId = null;
+        }
+    </script>
+</body>
+</html>
