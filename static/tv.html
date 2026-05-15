@@ -4,59 +4,174 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sala de Espera - Digiturno</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0f172a;
+            --accent: #2563eb;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --yellow: #f59e0b;
+        }
         body { 
-            background-color: #050505; 
-            color: #ffffff; 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            text-align: center; 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif; 
             margin: 0; 
             display: flex; 
             flex-direction: column; 
-            justify-content: center; 
             height: 100vh;
             overflow: hidden;
         }
-        .titulo { 
-            font-size: 3vw; 
-            color: #888888; 
-            letter-spacing: 5px;
-            margin-bottom: 2vh; 
+        
+        header {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
         }
-        .turno { 
-            font-size: 28vw; 
-            font-weight: 900; 
-            color: #00ffea; 
-            text-shadow: 0 0 30px rgba(0, 255, 234, 0.5); 
-            margin: 0; 
-            line-height: 1;
+        h1 { margin: 0; letter-spacing: 0.5rem; font-weight: 900; color: var(--text-secondary); font-size: 2rem; }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            padding: 2rem;
+            gap: 2rem;
         }
-        .cajero { 
-            font-size: 5vw; 
-            color: #ffc107; 
-            margin-top: 4vh; 
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 2px;
+
+        /* El turno más reciente en grande */
+        .featured-call {
+            flex: 2;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 50px rgba(37, 99, 235, 0.2);
+            animation: pulse 2s infinite alternate;
         }
+        
+        @keyframes pulse {
+            from { box-shadow: 0 0 30px rgba(37, 99, 235, 0.2); }
+            to { box-shadow: 0 0 60px rgba(37, 99, 235, 0.4); }
+        }
+
+        .featured-label { font-size: 2rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; margin-bottom: 1rem; }
+        .featured-number { font-size: 15vw; font-weight: 900; line-height: 1; color: white; }
+        .featured-cajero { font-size: 4rem; font-weight: 700; color: var(--text-secondary); margin-top: 1rem; }
+
+        /* Lista de otros turnos activos */
+        .sidebar {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow: hidden;
+        }
+        .sidebar-title { font-size: 1.5rem; font-weight: 700; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+        
+        .turn-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            border-left: 5px solid var(--accent);
+        }
+        .turn-item .num { font-size: 2.5rem; font-weight: 800; }
+        .turn-item .caj { font-size: 1.2rem; font-weight: 600; color: var(--yellow); }
+
+        .no-data { font-size: 1.5rem; color: var(--text-secondary); text-align: center; margin-top: 5rem; }
     </style>
 </head>
 <body>
-    <div class="titulo">TURNO ACTUAL</div>
-    <div class="turno" id="turno">--</div>
-    <div class="cajero" id="caja">ESPERANDO LLAMADO...</div>
+    <header>
+        <h1>SALA DE ESPERA</h1>
+    </header>
+
+    <div class="main-container">
+        <!-- Turno Principal (el último llamado) -->
+        <div class="featured-call" id="featured_box">
+            <div class="featured-label">Llamando Ahora</div>
+            <div class="featured-number" id="main_turno">--</div>
+            <div class="featured-cajero" id="main_cajero">ESPERANDO...</div>
+        </div>
+
+        <!-- Lista de otros llamados activos -->
+        <div class="sidebar">
+            <div class="sidebar-title">Módulos Activos</div>
+            <div id="sidebar_list">
+                <!-- Aquí se inyectarán los demás turnos -->
+            </div>
+        </div>
+    </div>
 
     <script>
-        // SSE: reemplaza el polling de setInterval cada 3s
         const source = new EventSource('/api/tv/stream');
+        let ultimoTurno = null;
 
         source.onmessage = (e) => {
-            const data = JSON.parse(e.data);
-            document.getElementById("turno").innerText =
-                data.turno_numero !== "-" ? data.turno_numero : "--";
-            document.getElementById("caja").innerText =
-                data.cajero !== "-" ? "MÓDULO: " + data.cajero : "ESPERANDO LLAMADO...";
+            const data = JSON.parse(e.data); // Ahora es una LISTA
+            actualizarPantalla(data);
         };
+
+        function actualizarPantalla(lista) {
+            const sidebar = document.getElementById("sidebar_list");
+            const mainTurno = document.getElementById("main_turno");
+            const mainCajero = document.getElementById("main_cajero");
+
+            if (lista.length === 0) {
+                mainTurno.innerText = "--";
+                mainCajero.innerText = "ESPERANDO...";
+                sidebar.innerHTML = '<div class="no-data">Sin turnos activos</div>';
+                return;
+            }
+
+            // El primero de la lista (el más reciente) va al centro
+            const destacado = lista[0];
+            
+            // Si el turno es nuevo, podríamos reproducir un sonido aquí
+            if (destacado.turno_numero !== ultimoTurno) {
+                ultimoTurno = destacado.turno_numero;
+                reproducirSonido();
+            }
+
+            mainTurno.innerText = destacado.turno_numero;
+            mainCajero.innerText = destacado.cajero.toUpperCase();
+
+            // Los demás van al sidebar
+            sidebar.innerHTML = "";
+            lista.slice(1).forEach(item => {
+                const div = document.createElement("div");
+                div.className = "turn-item";
+                div.innerHTML = `
+                    <div class="num">${item.turno_numero}</div>
+                    <div class="caj">${item.cajero.toUpperCase()}</div>
+                `;
+                sidebar.appendChild(div);
+            });
+        }
+
+        function reproducirSonido() {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = context.createOscillator();
+            const gain = context.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, context.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, context.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.1, context.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.5);
+            osc.connect(gain);
+            gain.connect(context.destination);
+            osc.start();
+            osc.stop(context.currentTime + 0.5);
+        }
 
         source.onerror = () => {
             console.error("Conexión SSE perdida, reintentando...");
