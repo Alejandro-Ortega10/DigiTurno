@@ -109,6 +109,13 @@ def solicitar_turno(servicio: str, db: sqlite3.Connection = Depends(get_db)):
 @app.post("/api/cajero/llamar")
 def llamar_siguiente(req: LlamadoRequest, db: sqlite3.Connection = Depends(get_db)):
     ahora = datetime.datetime.now()
+
+    # Auto-finalizar turno activo del cajero antes de llamar otro
+    db.execute(
+        "UPDATE turnos SET estado = 'ATENDIDO' WHERE cajero = ? AND estado = 'LLAMADO'",
+        (req.cajero,)
+    )
+
     # Operación atómica: UPDATE + RETURNING evita race condition
     row = db.execute(
         """UPDATE turnos

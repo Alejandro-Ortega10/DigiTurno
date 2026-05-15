@@ -30,6 +30,12 @@
         async function llamar() {
             const cajero = document.getElementById("nombre_cajero").value;
             const servicio = document.getElementById("tipo_servicio").value;
+
+            // El backend auto-finaliza el turno activo del cajero,
+            // así que limpiamos el estado local antes de llamar
+            turnoActualId = null;
+            document.getElementById("turno_actual").innerText = "Llamando...";
+
             const res = await fetch('/api/cajero/llamar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -37,9 +43,10 @@
             });
             if (res.ok) {
                 const data = await res.json();
-                turnoActualId = data.id;                           // ID interno para finalizar
+                turnoActualId = data.id;
                 document.getElementById("turno_actual").innerText = "Atendiendo: " + data.turno_llamado;
             } else {
+                document.getElementById("turno_actual").innerText = "-";
                 alert("No hay turnos en espera");
             }
         }
