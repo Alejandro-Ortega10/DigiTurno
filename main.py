@@ -180,35 +180,8 @@ async def llamar_siguiente(req: LlamadoRequest, db: sqlite3.Connection = Depends
             (req.cajero, ahora, req.servicio.upper())
         ).fetchone()
 
-<<<<<<< HEAD
-# --- ENDPOINTS CAJERO (Llama y atiende) ---
-@app.post("/api/cajero/llamar")
-def llamar_siguiente(req: LlamadoRequest, db: sqlite3.Connection = Depends(get_db)):
-    ahora = datetime.datetime.now()
-
-    # Auto-finalizar turno activo del cajero antes de llamar otro
-    db.execute(
-        "UPDATE turnos SET estado = 'ATENDIDO' WHERE cajero = ? AND estado = 'LLAMADO'",
-        (req.cajero,)
-    )
-
-    # Operación atómica: UPDATE + RETURNING evita race condition
-    row = db.execute(
-        """UPDATE turnos
-           SET estado = 'LLAMADO', cajero = ?, fecha_atencion = ?
-           WHERE id = (
-               SELECT id FROM turnos
-               WHERE estado = 'ESPERA' AND servicio = ?
-               ORDER BY id ASC
-               LIMIT 1
-           )
-           RETURNING id, turno_numero""",
-        (req.cajero, ahora, req.servicio.upper())
-    ).fetchone()
-=======
         if row is None:
             raise HTTPException(status_code=404, detail="No hay turnos en espera para este servicio")
->>>>>>> origin/yarturno
 
         db.commit()
         
